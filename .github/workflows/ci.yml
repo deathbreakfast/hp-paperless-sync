@@ -42,12 +42,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Create test watch folder
+      id: setup-watch-folder
       run: |
-        python -c "import os, tempfile; path = os.path.join(tempfile.gettempdir(), 'test_watch_folder'); os.makedirs(path, exist_ok=True); print(f'WATCH_FOLDER={path}')" >> $GITHUB_ENV
+        python -c "import os, tempfile; path = os.path.join(tempfile.gettempdir(), 'test_watch_folder'); os.makedirs(path, exist_ok=True); output_file = os.environ.get('GITHUB_OUTPUT'); env_file = os.environ.get('GITHUB_ENV'); open(output_file, 'a').write(f'path={path}\n') if output_file else None; open(env_file, 'a').write(f'WATCH_FOLDER={path}\n') if env_file else None"
     - name: Run tests
       env:
         PAPERLESS_URL: http://test.paperless.local:8000
         PAPERLESS_TOKEN: test_token_12345
+        WATCH_FOLDER: ${{ steps.setup-watch-folder.outputs.path }}
       run: |
         pytest tests/ -v --tb=short
 
